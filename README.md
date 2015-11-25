@@ -1,4 +1,4 @@
-Queerlink
+Queerlink [![Elixir](https://cdn.rawgit.com/Annwenn/Exon/master/elixir.svg)](http://elixir-lang.org) [![Queerness](https://cdn.rawgit.com/Annwenn/Exon/master/rainbow-queerness.svg)](http://queertoo.org)
 =========
 
 Version 2
