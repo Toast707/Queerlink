@@ -15,7 +15,11 @@ require Logger
 
   # GenServer API
   def init(_args) do
+    port = Application.get_env(:sugar, Queerlink.Router) |> Keyword.fetch!(:http) |> Keyword.fetch!(:port)
+    bind = Application.get_env(:sugar, Queerlink.Router) |> Keyword.fetch!(:http) |> Keyword.fetch!(:ip) |> :inet.ntoa |> List.to_string
+    host = Application.get_env(:queerlink, :host)
     Logger.info(IO.ANSI.green <> "Shortener Initialiased" <> IO.ANSI.reset)
+    Logger.info(IO.ANSI.green <> "Listening on #{bind} at #{host}:#{port}" <> IO.ANSI.reset)
     {:ok, :ok}
   end
 
