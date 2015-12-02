@@ -19,7 +19,7 @@ require Logger
 
   def shorten(conn, [format: "json"]) do
     %{"url" => url} = conn.params
-    case URI.parse(url) |> validate do
+    case URI.parse(url) |> validate_host do
       {:error, :invalid_url} ->
         data = %{:status => "error", :data => "Invalid URL"}
       {:error, :localhost} ->
@@ -50,18 +50,26 @@ require Logger
   defp e_parse({:error, :not_found}), do: %{:status => "error", :data => "URL not found"}
 
 
-  def validate(uri) do
+  def validate_host(uri) do
     case uri.host do
-      "127.0.0.1" ->
+      "127.0" <> _foo ->
         {:error, :localhost}
       "localhost" ->
         {:error, :localhost}
       "::1" ->
         {:error, :localhost}
       nil ->
-        {:error, :invalid_url}
+        validate_scheme(uri)
       _ ->
         URI.to_string(uri)
+    end
+  end
+
+  def validate_scheme(uri) do
+    case uri.scheme do
+      "mangnet" ->
+        URI.to_string(uri)
+      _ -> {:error, :invalid_url}
     end
   end
 end
