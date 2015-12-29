@@ -10,7 +10,7 @@ config :sugar,
 
 config :sugar, Queerlink.Router,
   https_only: false,
-  http: [ port: 4000, ip: {127,0,0,1} ],
+  http: [ port: 4002, ip: {127,0,0,1} ],
   https: false
 
 config :queerlink, Queerlink.Repo,
