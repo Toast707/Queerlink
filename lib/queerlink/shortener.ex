@@ -1,8 +1,10 @@
 defmodule Queerlink.Shortener do
 @moduledoc false
+
 use GenServer
-alias Queerlink.Link
-alias Queerlink.Repo
+use Queerlink.Web, :controller
+import Queerlink.Router.Helpers
+alias Queerlink.{Link,Repo}
 import Ecto.Query
 require Logger
 
@@ -15,16 +17,13 @@ require Logger
 
   # GenServer API
   def init(_args) do
-    port = Application.get_env(:sugar, Queerlink.Router) |> Keyword.fetch!(:http) |> Keyword.fetch!(:port)
-    bind = Application.get_env(:sugar, Queerlink.Router) |> Keyword.fetch!(:http) |> Keyword.fetch!(:ip) |> :inet.ntoa |> List.to_string
-    host = Application.get_env(:queerlink, :host)
     Logger.info(IO.ANSI.green <> "Shortener Initialiased" <> IO.ANSI.reset)
-    Logger.info(IO.ANSI.green <> "Listening on #{bind} at #{host}:#{port}" <> IO.ANSI.reset)
+    Logger.info(IO.ANSI.green <> "Listening on " <> page_url(Queerlink.Endpoint, :index) <> IO.ANSI.reset)
     {:ok, :ok}
   end
 
   def handle_call({:get_url, uid}, _from, state) do
-    reply = lookup(uid) |> parse
+    reply = uid |> lookup |> parse
     {:reply, reply, state}
   end
 
@@ -34,27 +33,22 @@ require Logger
     {:reply, {:ok, uid}, state}
   end
 
-
   # Backend API
   def insert(url) do
     url |> check_duplicate |> insert_to_db(url)
   end
 
-  @spec lookup(Integer) :: %Queerlink.Link{} | []
-  def lookup(uid) do
-    query = from l in Link, where: l.uid == ^uid, select: l
-    Repo.all(query)
-  end
-
   @spec check_duplicate(String.t) :: [String.t] | []
   defp check_duplicate(url) do
     query = from l in Link, where: l.url == ^url, select: l
+    Logger.debug("ON CHECK LES DUPES")
     Repo.all(query)
   end
 
-  defp insert_to_db([uid], _url), do: uid
+  defp insert_to_db([%Link{uid: uid}], _url), do: uid
   defp insert_to_db([], url) do
     uid = gen_uid()
+    Logger.debug("YOLO, on insert dans la db")
     case Repo.insert(%Link{uid: uid, url: url}) do
       {:ok, link} ->
         {:ok, link.uid}
@@ -62,6 +56,12 @@ require Logger
         Logger.error("Could not save the URL in the database :(")
         {:error, :not_saved}
     end
+  end
+
+  @spec lookup(Integer) :: %Queerlink.Link{} | []
+  def lookup(uid) do
+    query = from l in Link, where: l.uid == ^uid, select: l
+    Repo.all(query)
   end
 
   defp parse([]), do: {:error, :not_found}
